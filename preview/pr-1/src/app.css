@@ -93,6 +93,7 @@ header p {
 
 /* ── ELI5 MODAL ──────────────────────────────────────── */
 dialog#eli5-modal {
+  margin: auto; /* the global `* { margin: 0 }` reset above breaks native dialog centering otherwise */
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
