@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  workflow_call:
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    name: Build check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run gen-icons
+      - run: npm run build

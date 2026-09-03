@@ -1,0 +1,15 @@
+#app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-3);
+}
+
+h1 {
+  font-size: var(--step-2);
+  color: var(--text);
+}
+
+p {
+  font-size: var(--step-0);
+  color: var(--text-muted);
+}

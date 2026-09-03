@@ -1,0 +1,8 @@
+{
+  "name": "App Name",
+  "description": "One sentence. The card has no room for two.",
+  "icon": { "emoji": "🔧", "favicon": "auto" },
+  "tags": [],
+  "status": "live",
+  "visibility": "public"
+}

@@ -1,0 +1,56 @@
+name: Pages Deploy
+
+# Reusable — called by each app repo's own thin workflow (see README.md for the
+# caller snippet). main pushes deploy to gh-pages:/ (prod); open PRs deploy to
+# gh-pages:/preview/pr-<N>/ and get cleaned up when the PR closes. No base-path
+# build parameter needed — see scripts/build.mjs.
+on:
+  workflow_call:
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' || github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    name: Build and deploy
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run gen-icons
+      - run: npm run build
+      - name: Determine destination
+        id: dest
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "dir=preview/pr-${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=." >> "$GITHUB_OUTPUT"
+          fi
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          destination_dir: ${{ steps.dest.outputs.dir }}
+          keep_files: true
+
+  cleanup-preview:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Remove closed PR's preview
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+      - run: |
+          rm -rf "preview/pr-${{ github.event.pull_request.number }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --staged --quiet || git commit -m "Clean up preview for closed PR #${{ github.event.pull_request.number }}"
+          git push origin gh-pages

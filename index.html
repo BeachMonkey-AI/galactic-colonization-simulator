@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Name</title>
+  <meta name="description" content="One-line pitch." />
+  <meta name="theme-color" content="#0d0d0f" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="src/app.css" />
+</head>
+<body>
+
+  <main id="app">
+    <h1>App Name</h1>
+    <p>Start building here.</p>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+  <script>
+    // Relative path — resolves against wherever this page is actually served from,
+    // so prod (/) and PR previews (/preview/pr-<N>/) both register correctly with
+    // no build-time base-path parameter needed.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
+
+</body>
+</html>

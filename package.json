@@ -1,0 +1,14 @@
+{
+  "name": "app-template",
+  "version": "1.0.0",
+  "description": "Template for Bob's apps. Copy, never link.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gen-icons": "node scripts/gen-icons.mjs",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.4"
+  }
+}
