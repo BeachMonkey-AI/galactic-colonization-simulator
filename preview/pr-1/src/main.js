@@ -142,10 +142,12 @@ function evaluateScenario(p) {
   const massAtT = cdfAt(em.ts, em.dt, em.density, p.T);
   const nLaunched = lambda * rarity * massAtT;
 
+  // A stalled front dies out within a few hop-cycles of its origin and never gets
+  // anywhere near crossing distance — arrival/detectability are moot, not just small.
   const tArriveCutoff = p.T - exp.tCrossGyr;
-  const massArrived = tArriveCutoff > 0 ? cdfAt(em.ts, em.dt, em.density, tArriveCutoff) : 0;
-  const nArrived = lambda * rarity * massArrived;
-  const nDetectable = nArrived * p.detect;
+  const massArrived = (!exp.stalled && tArriveCutoff > 0) ? cdfAt(em.ts, em.dt, em.density, tArriveCutoff) : 0;
+  const nArrived = exp.stalled ? 0 : lambda * rarity * massArrived;
+  const nDetectable = exp.stalled ? 0 : nArrived * p.detect;
 
   // Earliest time cumulative launched count reaches 1 civilization.
   let tEarliest = null;
