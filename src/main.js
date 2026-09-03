@@ -850,9 +850,21 @@ function loadFromHash() {
   return false;
 }
 
+function wireEli5Modal() {
+  const modal = $('eli5-modal');
+  const openBtn = $('eli5-btn');
+  const closeBtn = $('eli5-close');
+  if (!modal || !openBtn) return;
+  openBtn.addEventListener('click', () => modal.showModal());
+  closeBtn.addEventListener('click', () => modal.close());
+  // Click on the backdrop (outside .modal-card) closes it.
+  modal.addEventListener('click', e => { if (e.target === modal) modal.close(); });
+}
+
 function init() {
   initTabs();
   wireEvents();
+  wireEli5Modal();
   syncDerivedUI();
   if (!loadFromHash()) {
     // no shareable state — leave the placeholder showing.
