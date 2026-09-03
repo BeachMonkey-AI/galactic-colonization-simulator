@@ -21,6 +21,78 @@
     <p>Von Neumann probes, the Fermi paradox, and how fast silence should become a paradox</p>
   </header>
 
+  <!-- INTRO -->
+  <div class="intro">
+    <p>
+      One answer to "why haven't we found aliens?": build a robot that can fly to another star,
+      mine raw material, build copies of itself, and send them onward. The population explodes
+      fast enough that a single civilization could fill the galaxy in a few million years &mdash;
+      a blink of an eye against its 13.6-billion-year history. This tool lets you test that
+      argument yourself: tune how good the probes are and how rare civilizations are, and see
+      whether the galaxy should already be crawling with them.
+      <button type="button" id="eli5-btn" class="info-btn" aria-haspopup="dialog" aria-controls="eli5-modal">
+        <span aria-hidden="true">&#9432;</span> What is this?
+      </button>
+    </p>
+  </div>
+
+  <dialog id="eli5-modal">
+    <div class="modal-card">
+      <button type="button" id="eli5-close" class="modal-close" aria-label="Close">&times;</button>
+      <h2>What is this, actually?</h2>
+
+      <h3>The Fermi Paradox, in one line</h3>
+      <p>
+        The universe is unbelievably old and unbelievably big, yet as far as we can tell we've
+        never detected a single trace of anyone else in it. That mismatch &mdash; a galaxy that
+        should be able to fill up with life, and a sky that looks completely empty &mdash; is the
+        Fermi Paradox.
+      </p>
+
+      <h3>Von Neumann probes</h3>
+      <p>
+        The sharpest version of the argument uses a hypothetical machine called a von Neumann
+        probe: a spacecraft that, on arriving at a new star system, mines raw material, builds
+        copies of itself, and sends those copies onward. Start with one probe and the numbers
+        explode &mdash; 2 becomes 4, 4 becomes 8 &mdash; so even a slow, unambitious probe fleet
+        can, in principle, spread across an entire galaxy in a few million years. That's a
+        geological eyeblink next to how long the galaxy has existed (13.6 billion years). So if
+        that's even roughly right, the galaxy should already be full of them. It isn't, as far as
+        we can tell. Why?
+      </p>
+
+      <h3>What this tool actually does</h3>
+      <p>
+        Two things decide the answer: how good the probes are at spreading (speed, how long they
+        linger before launching children, how many children, how often they fail), and how long
+        it takes &mdash; and how likely it is &mdash; for a planet to ever produce a civilization
+        capable of building probes in the first place. This dashboard lets you dial in both halves
+        and see what falls out: has anyone had time to reach us yet? If so, should we be able to
+        detect them?
+      </p>
+
+      <h3>Reading the verdict</h3>
+      <p>
+        <strong>SATURATED</strong> &mdash; the numbers say probes should already be here and
+        visible. That's a real paradox; something must be stopping this from happening.<br>
+        <strong>MARGINAL</strong> &mdash; right on the edge; genuinely unclear either way.<br>
+        <strong>QUIET</strong> &mdash; nobody's plausibly had time yet. No paradox, no mystery
+        &mdash; silence is exactly what you'd expect.<br>
+        <strong>DORMANT</strong> &mdash; probes should physically be here, but we might just not
+        be able to detect them (stealthy, dormant, or we haven't looked hard enough).<br>
+        <strong>STALLED</strong> &mdash; the probes' own math means they die out before ever
+        reaching galactic scale, regardless of how much time has passed.
+      </p>
+
+      <h3>Where to start</h3>
+      <p>
+        Click any of the seven presets above &mdash; each tells a complete, self-consistent
+        version of the argument. Or drag any slider yourself; the tool recomputes live, and every
+        configuration you land on is a shareable link.
+      </p>
+    </div>
+  </dialog>
+
   <!-- PRESETS -->
   <div class="presets" id="presets">
     <button class="preset-btn classic" data-preset="classic-hart-tipler">
