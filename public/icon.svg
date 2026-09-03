@@ -1,4 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#0d0d0f"/>
-  <circle cx="256" cy="256" r="140" fill="#7c6af7"/>
+  <defs>
+    <radialGradient id="core" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f3ecff"/>
+      <stop offset="45%" stop-color="#c4b3fb"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </radialGradient>
+    <linearGradient id="arm1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="#05080f"/>
+  <g opacity="0.9">
+    <path d="M256 256 C 330 210, 400 230, 430 300 C 400 250, 340 240, 290 270 Z" fill="url(#arm1)"/>
+    <path d="M256 256 C 182 302, 112 282, 82 212 C 112 262, 172 272, 222 242 Z" fill="url(#arm1)"/>
+    <path d="M256 256 C 300 182, 290 112, 220 82 C 270 112, 280 172, 250 222 Z" fill="url(#arm1)" opacity="0.75"/>
+    <path d="M256 256 C 212 330, 222 400, 292 430 C 242 400, 232 340, 262 290 Z" fill="url(#arm1)" opacity="0.75"/>
+  </g>
+  <circle cx="256" cy="256" r="58" fill="url(#core)"/>
 </svg>
