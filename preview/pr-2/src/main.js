@@ -649,14 +649,19 @@ function activateTab(which) {
   $('mc-summary').hidden = which !== 'montecarlo' || !el.stoch.checked;
   // Charts for inactive tabs get created/updated while their container is
   // display:none (a preset click or Run redraws all three regardless of which
-  // tab is showing). Chart.js can't measure a hidden canvas, so the chart that
-  // was off-screen at creation time looks frozen/blank until forced to
-  // re-measure now that its container is actually visible.
-  requestAnimationFrame(() => {
-    if (which === 'front' && chartFront) chartFront.resize();
-    if (which === 'emergence' && chartEmergence) chartEmergence.resize();
-    if (which === 'montecarlo' && chartMc) chartMc.resize();
-  });
+  // tab is showing). Chart.js can't measure a hidden canvas — its <canvas>
+  // stays permanently sized at 0x0 — so the chart that was off-screen at
+  // creation time looks frozen/blank until forced to re-measure now that its
+  // container is actually visible. Confirmed: chart.resize() fixes it
+  // instantly once called. Call it both immediately (the `hidden` attribute
+  // change above is already applied synchronously) and once more on the next
+  // frame as a fallback in case layout hadn't fully settled yet — cheap and
+  // makes this independent of exactly when the browser gets around to it.
+  const chart = { front: chartFront, emergence: chartEmergence, montecarlo: chartMc }[which];
+  if (chart) {
+    chart.resize();
+    requestAnimationFrame(() => chart.resize());
+  }
 }
 
 function initTabs() {
