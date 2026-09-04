@@ -1,8 +1,8 @@
 {
-  "name": "App Name",
-  "description": "One sentence. The card has no room for two.",
-  "icon": { "emoji": "🔧", "favicon": "auto" },
-  "tags": [],
+  "name": "Galactic Colonization Simulator",
+  "description": "Tune von Neumann probe physics and civilization timing, watch the Fermi paradox verdict flip.",
+  "icon": { "emoji": "🌌", "favicon": "auto" },
+  "tags": ["physics", "space", "simulation", "fermi-paradox"],
   "status": "live",
   "visibility": "public"
 }

@@ -1,36 +1,521 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>App Name</title>
-  <meta name="description" content="One-line pitch." />
-  <meta name="theme-color" content="#0d0d0f" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="icons/icon-192.png" type="image/png" />
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-  <link rel="stylesheet" href="styles/tokens.css" />
-  <link rel="stylesheet" href="src/app.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Galactic Colonization Simulator</title>
+<meta name="description" content="Model von Neumann probe expansion across the galaxy and the Fermi paradox timing argument — tune the physics, watch the verdict flip." />
+<meta name="theme-color" content="#050810" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icons/icon-192.png" type="image/png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="stylesheet" href="styles/tokens.css" />
+<link rel="stylesheet" href="src/app.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
+<div class="app">
 
-  <main id="app">
-    <h1>App Name</h1>
-    <p>Start building here.</p>
-  </main>
+  <header>
+    <h1>&#127756; Galactic Colonization Simulator</h1>
+    <p>Von Neumann probes, the Fermi paradox, and how fast silence should become a paradox</p>
+  </header>
 
-  <script type="module" src="src/main.js"></script>
-  <script>
-    // Relative path — resolves against wherever this page is actually served from,
-    // so prod (/) and PR previews (/preview/pr-<N>/) both register correctly with
-    // no build-time base-path parameter needed.
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .catch(err => console.warn('SW registration failed:', err));
-      });
-    }
-  </script>
+  <!-- INTRO -->
+  <div class="intro">
+    <p>
+      One answer to "why haven't we found aliens?": build a robot that can fly to another star,
+      mine raw material, build copies of itself, and send them onward. The population explodes
+      fast enough that a single civilization could fill the galaxy in a few million years &mdash;
+      a blink of an eye against its 13.6-billion-year history. This tool lets you test that
+      argument yourself: tune how good the probes are and how rare civilizations are, and see
+      whether the galaxy should already be crawling with them.
+      <button type="button" id="eli5-btn" class="info-btn" aria-haspopup="dialog" aria-controls="eli5-modal">
+        <span aria-hidden="true">&#9432;</span> What is this?
+      </button>
+    </p>
+  </div>
+
+  <dialog id="eli5-modal">
+    <div class="modal-card">
+      <button type="button" id="eli5-close" class="modal-close" aria-label="Close">&times;</button>
+      <h2>What is this, actually?</h2>
+
+      <h3>The Fermi Paradox, in one line</h3>
+      <p>
+        The universe is unbelievably old and unbelievably big, yet as far as we can tell we've
+        never detected a single trace of anyone else in it. That mismatch &mdash; a galaxy that
+        should be able to fill up with life, and a sky that looks completely empty &mdash; is the
+        Fermi Paradox.
+      </p>
+
+      <h3>Von Neumann probes</h3>
+      <p>
+        The sharpest version of the argument uses a hypothetical machine called a von Neumann
+        probe: a spacecraft that, on arriving at a new star system, mines raw material, builds
+        copies of itself, and sends those copies onward. Start with one probe and the numbers
+        explode &mdash; 2 becomes 4, 4 becomes 8 &mdash; so even a slow, unambitious probe fleet
+        can, in principle, spread across an entire galaxy in a few million years. That's a
+        geological eyeblink next to how long the galaxy has existed (13.6 billion years). So if
+        that's even roughly right, the galaxy should already be full of them. It isn't, as far as
+        we can tell. Why?
+      </p>
+
+      <h3>What this tool actually does</h3>
+      <p>
+        Two things decide the answer: how good the probes are at spreading (speed, how long they
+        linger before launching children, how many children, how often they fail), and how long
+        it takes &mdash; and how likely it is &mdash; for a planet to ever produce a civilization
+        capable of building probes in the first place. This dashboard lets you dial in both halves
+        and see what falls out: has anyone had time to reach us yet? If so, should we be able to
+        detect them?
+      </p>
+
+      <h3>Reading the verdict</h3>
+      <p>
+        <strong>SATURATED</strong> &mdash; the numbers say probes should already be here and
+        visible. That's a real paradox; something must be stopping this from happening.<br>
+        <strong>MARGINAL</strong> &mdash; right on the edge; genuinely unclear either way.<br>
+        <strong>QUIET</strong> &mdash; nobody's plausibly had time yet. No paradox, no mystery
+        &mdash; silence is exactly what you'd expect.<br>
+        <strong>DORMANT</strong> &mdash; probes should physically be here, but we might just not
+        be able to detect them (stealthy, dormant, or we haven't looked hard enough).<br>
+        <strong>STALLED</strong> &mdash; the probes' own math means they die out before ever
+        reaching galactic scale, regardless of how much time has passed.
+      </p>
+
+      <h3>Where to start</h3>
+      <p>
+        Click any of the seven presets above &mdash; each tells a complete, self-consistent
+        version of the argument. Or drag any slider yourself; the tool recomputes live, and every
+        configuration you land on is a shareable link.
+      </p>
+    </div>
+  </dialog>
+
+  <!-- PRESETS -->
+  <div class="presets" id="presets">
+    <button class="preset-btn classic" data-preset="classic-hart-tipler">
+      <span class="tag">CLASSIC</span>Classic Hart&ndash;Tipler
+    </button>
+    <button class="preset-btn classic" data-preset="slow-crawl">
+      <span class="tag">CLASSIC</span>Slow Crawl
+    </button>
+    <button class="preset-btn timing" data-preset="late-metallicity">
+      <span class="tag">TIMING</span>Late Metallicity
+    </button>
+    <button class="preset-btn rarity" data-preset="rare-intelligence">
+      <span class="tag">RARITY</span>Rare Intelligence
+    </button>
+    <button class="preset-btn structure" data-preset="percolation-stall">
+      <span class="tag">STRUCTURE</span>Percolation Stall
+    </button>
+    <button class="preset-btn timing" data-preset="we-are-first">
+      <span class="tag">TIMING</span>We Are First
+    </button>
+    <button class="preset-btn threat" data-preset="berserker">
+      <span class="tag">THREAT</span>Berserker
+    </button>
+  </div>
+
+  <div class="main">
+
+    <!-- CONTROLS -->
+    <aside class="controls">
+      <div class="controls-title">Probe &amp; Expansion Parameters</div>
+
+      <div class="field-group">
+        <label>Cruise Velocity
+          <span class="help-tip" data-tip="Probe speed between star systems, as a fraction of c. Real proposals (fusion, laser sails) top out well under 0.1c; 0.1c+ requires exotic propulsion. Because 1 light-year per year equals exactly c, this value is also the probe's speed in ly/yr.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="v-cruise" value="0.01" step="any" min="0.0001" max="0.5">
+          <span class="unit">c</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Hop Distance
+          <span class="help-tip" data-tip="Distance a probe travels between the star system it launched from and the next one it colonizes. Shorter hops mean more frequent stops (more time lost accelerating/decelerating in a fuller model) but denser coverage; this model treats each hop as instantaneous transit at cruise velocity.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="hop-val" value="5" step="any" min="1" max="50">
+          <select id="hop-unit">
+            <option value="ly" selected>ly</option>
+            <option value="pc">pc</option>
+            <option value="kly">kly</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Dwell Time
+          <span class="help-tip" data-tip="Time a probe spends at a new system before it finishes building and launching its own children — mining raw material, self-replicating, checking out. Longer dwell times slow the wave front even if cruise velocity is high; a fast ship with a 10,000-year dwell crawls.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="dwell" value="500" step="any" min="0" max="100000">
+          <span class="unit">yr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Replication Factor (k)
+          <span class="help-tip" data-tip="Number of child probes launched from each system before it goes quiet. Combined with the per-hop survival rate, k·s is the branching factor of the whole colonization tree. If k·s ≤ 1, each generation produces on average one or fewer surviving daughter waves and the front eventually dies out — see 'Stall condition' in the reference section.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="k-repl" value="2" step="1" min="1" max="10">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Failure Rate per Hop
+          <span class="help-tip" data-tip="Probability a probe is lost before it successfully replicates — navigation error, collision, manufacturing fault, hostile action. Survival s = 1 − failure. High failure rates can stall the whole expansion even with aggressive replication; see Percolation Stall.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="fail-rate" value="5" step="any" min="0" max="99">
+          <span class="unit">%</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <details class="advanced-group">
+        <summary>Galaxy Structure <span class="help-tip" data-tip="Structural constants about the galaxy itself — usually left at their defaults, but tunable if you want to steelman a denser or sparser galaxy.">?</span></summary>
+
+        <div class="field-group">
+          <label>Target Density
+            <span class="help-tip" data-tip="Density of systems a probe can usefully hop to and colonize (mining/replication targets, not necessarily Earth-like worlds) — denser than the abiogenesis-capable planet density used in the emergence model below, since a von Neumann probe just needs raw material and a place to build, not biochemistry.">?</span>
+          </label>
+          <div class="field-row">
+            <input type="number" id="target-density" value="0.004" step="any" min="0.0001">
+            <span class="unit">/ly&sup3;</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Galaxy Radius
+            <span class="help-tip" data-tip="Radius of the galactic disk, used as the worst-case colonization crossing distance: t_cross = 2R / v_wave (launch near the center, reach the far edge). The Milky Way's disk is roughly 50,000 ly in radius.">?</span>
+          </label>
+          <div class="field-row">
+            <input type="number" id="galaxy-radius" value="50000" step="any" min="1000">
+            <span class="unit">ly</span>
+          </div>
+        </div>
+
+        <div class="field-group toggle-group">
+          <label class="toggle-label">
+            <input type="checkbox" id="use-ghz" checked> Galactic Habitable Zone constraint
+            <span class="help-tip" data-tip="Restricts colonizable/habitable targets to an annulus of the disk rather than treating it as uniform. Too close to the galactic center and radiation/nova rates are too high; too far out and there hasn't been enough time to build up heavy elements. Turning this off inflates the naive planet count by treating the whole disk as equally viable.">?</span>
+          </label>
+        </div>
+
+        <div id="ghz-fields">
+          <div class="field-group">
+            <label>GHZ Inner Radius
+              <span class="help-tip" data-tip="Distance from the galactic center below which radiation and supernova rates are thought to be too high for complex life to persist. The Milky Way's inner boundary is usually put around 4 kpc (~13,000 ly).">?</span>
+            </label>
+            <div class="field-row">
+              <input type="number" id="ghz-inner" value="13000" step="any" min="0">
+              <span class="unit">ly</span>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>GHZ Outer Radius
+              <span class="help-tip" data-tip="Distance from the galactic center beyond which there hasn't been enough time to build up sufficient heavy-element enrichment for rocky planets. Usually put around 10 kpc (~32,600 ly). Earth sits at roughly 27,000 ly — well inside this band.">?</span>
+            </label>
+            <div class="field-row">
+              <input type="number" id="ghz-outer" value="32600" step="any" min="0">
+              <span class="unit">ly</span>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Disk Thickness
+              <span class="help-tip" data-tip="Vertical thickness of the galactic disk used to convert the GHZ annulus (and the colonization frontier's swept area) into a volume. The Milky Way's thin disk is roughly 1,000 ly thick.">?</span>
+            </label>
+            <div class="field-row">
+              <input type="number" id="disk-thickness" value="1000" step="any" min="1">
+              <span class="unit">ly</span>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <hr class="divider">
+
+      <div class="controls-title">Emergence Timing</div>
+
+      <div class="field-group">
+        <label>Galaxy Age
+          <span class="help-tip" data-tip="Time elapsed since the Big Bang — 'now', for the purposes of this model. Everything in the emergence distribution to the left of this line has already happened; everything to the right hasn't yet.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="galaxy-age" value="13.6" step="any" min="8" max="14">
+          <span class="unit">Gyr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Metallicity Threshold
+          <span class="help-tip" data-tip="Time after the Big Bang before enough heavy elements exist, in quantity, to build rocky planets. Before this, star formation still happens but mostly produces metal-poor stars with little to build a terrestrial planet from. No habitable planets form before this line, full stop.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="t-metal" value="5.0" step="any" min="0" max="13">
+          <span class="unit">Gyr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Mean Bio Clock
+          <span class="help-tip" data-tip="Average time from a rocky planet forming to a technological, probe-launching civilization emerging on it — abiogenesis, multicellularity, intelligence, tool use, industrialization, all of it. Earth took about 4.5 Gyr. Modeled as a right-skewed distribution (a Gamma distribution) since it can't be negative and slow outliers are more plausible than fast ones.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="bio-mean" value="4.5" step="any" min="0.5" max="13">
+          <span class="unit">Gyr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Bio Clock Std. Dev.
+          <span class="help-tip" data-tip="Spread of the planet-formation-to-civilization time around the mean. Larger values mean the timing argument gets fuzzier — more civilizations plausibly emerge far from the mean in either direction.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="bio-sigma" value="1.0" step="any" min="0.1" max="5">
+          <span class="unit">Gyr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Star Formation Curve
+          <span class="help-tip" data-tip="Shape of star (and rocky-planet) formation over the galaxy's history. 'Observed' roughly follows the real cosmic star formation history (rise, peak around 3&ndash;4 Gyr, long decline). 'Flat' spreads formation evenly across all of galactic history. 'Early-peak' front-loads formation into the galaxy's first ~2 Gyr.">?</span>
+        </label>
+        <div class="field-row">
+          <select id="sfr-curve">
+            <option value="observed" selected>Observed</option>
+            <option value="flat">Flat</option>
+            <option value="early-peak">Early-peak</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="controls-title">Rarity Terms</div>
+
+      <div class="field-group">
+        <label>P(abiogenesis | habitable)
+          <span class="help-tip" data-tip="Probability that life ever gets started on a given habitable planet, per the galaxy's history. Wildly uncertain — estimates in the literature span nearly the full log-uniform range shown here. Dragging this slider down is the classic 'rare life' steelman.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="range" id="p-abio" min="-9" max="0" step="0.01" value="-2">
+          <span class="log-readout" id="p-abio-readout">1.0&times;10&#8315;&sup2;</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>P(intelligence | life)
+          <span class="help-tip" data-tip="Probability that, given life exists, it ever evolves technological intelligence. Life has existed on Earth for ~3.8 Gyr and produced exactly one technological species. This is the classic 'rare intelligence' lever.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="range" id="p-intel" min="-9" max="0" step="0.01" value="-3">
+          <span class="log-readout" id="p-intel-readout">1.0&times;10&#8315;&sup3;</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>P(launches probes | intelligence)
+          <span class="help-tip" data-tip="Probability that a technological civilization actually builds and launches self-replicating probes, rather than staying home, going extinct first, or choosing not to. Not a rarity-of-biology term — a rarity-of-choice term.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="range" id="p-launch" min="0" max="1" step="0.01" value="0.5">
+          <span class="log-readout" id="p-launch-readout">0.50</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="controls-title">Detectability</div>
+
+      <div class="field-group">
+        <label>P(detect | present)
+          <span class="help-tip" data-tip="If a colonization wave has physically reached the Solar System by now, the probability we'd actually have noticed — probes could be dormant, stealthed, small, EM-quiet, or we simply haven't looked hard enough. Low values dissolve the paradox without needing a Great Filter: they're here, we just can't see them.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="range" id="p-detect" min="0" max="1" step="0.001" value="0.5">
+          <span class="log-readout" id="p-detect-readout">0.50</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="controls-title">Stochastic Mode</div>
+
+      <div class="field-group toggle-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="use-stochastic"> Monte Carlo mode
+          <span class="help-tip" data-tip="Instead of point estimates, samples the three rarity terms from broad log-uniform priors across many runs, holding the astrophysical/expansion parameters fixed. Reports the distribution of outcomes rather than a single number — with log-uniform priors the modal outcome is often N≈1.">?</span>
+        </label>
+      </div>
+
+      <div id="stochastic-fields" hidden>
+        <div class="field-group">
+          <label>Run Count</label>
+          <div class="field-row">
+            <select id="run-count">
+              <option value="100">100</option>
+              <option value="1000" selected>1,000</option>
+              <option value="10000">10,000</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Seed
+            <span class="help-tip" data-tip="Seeds the random number generator so a Monte Carlo run is exactly reproducible from a shared URL.">?</span>
+          </label>
+          <div class="field-row">
+            <input type="number" id="seed" value="42" step="1" min="0">
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <button class="sim-btn" id="run-btn">&#9654; Run Simulation</button>
+      <div class="progress-wrap" id="progress-wrap" hidden>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-label" id="progress-label">Running Monte Carlo&hellip;</div>
+      </div>
+
+      <div id="preview-box" class="rocket-box">
+        <div class="rocket-box-title">Colonization Preview</div>
+        <div id="colonization-preview">&mdash;</div>
+      </div>
+    </aside>
+
+    <!-- RESULTS -->
+    <main class="results">
+      <div id="no-results" class="placeholder">
+        <span>&#128752;</span>
+        Select a preset or enter parameters and click "Run Simulation"
+      </div>
+
+      <div id="results-content" hidden>
+
+        <div class="verdict-card" id="verdict-card">
+          <div class="verdict-head">
+            <span class="verdict-badge" id="verdict-badge">&mdash;</span>
+            <span class="scenario-name" id="scenario-name"></span>
+          </div>
+          <div class="verdict-body" id="verdict-body"></div>
+        </div>
+
+        <div class="metrics-grid" id="metrics-grid"></div>
+
+        <div class="chart-tabs">
+          <button class="tab active" data-tab="front">Colonization Front
+            <span class="help-tip" data-tip="Systems occupied by the colonization wave over time since launch, on a log scale. Grows exponentially while replication targets are abundant, then flattens once the wave front itself becomes the bottleneck. The dashed line marks when the wave would reach Earth; the flat ceiling marks total galactic saturation.">?</span>
+          </button>
+          <button class="tab" data-tab="emergence">Emergence Distribution
+            <span class="help-tip" data-tip="How many civilizations emerge per Gyr across galactic history, given the metallicity floor and biological clock. The shaded region is civilizations early enough that their colonization wave should already have reached us — this chart is the timing argument made visual.">?</span>
+          </button>
+          <button class="tab" data-tab="montecarlo" id="tab-montecarlo" hidden>Monte Carlo
+            <span class="help-tip" data-tip="Distribution of the number of civilizations whose wave should have reached us by now, across every sampled run. With log-uniform rarity priors the modal outcome is very often N=1 — 'we might be the only ones' isn't a fringe result, it's typical.">?</span>
+          </button>
+        </div>
+
+        <div class="chart-wrap" id="chart-front"><canvas id="cv-front"></canvas></div>
+        <div class="chart-wrap" id="chart-emergence" hidden><canvas id="cv-emergence"></canvas></div>
+        <div class="chart-wrap" id="chart-montecarlo" hidden><canvas id="cv-montecarlo"></canvas></div>
+
+        <div class="mc-summary" id="mc-summary" hidden></div>
+      </div>
+
+      <!-- Physics Reference -->
+      <details class="physics-ref">
+        <summary>Physics &amp; Math Reference</summary>
+        <div class="ref-body">
+          <div class="ref-section">
+            <h4>Wave Front Velocity</h4>
+            <p>
+              <strong>v_wave</strong> = d_hop / (d_hop/v + t_dwell)<br>
+              Speed the colonization frontier actually advances, accounting for time spent dwelling and replicating at each stop, not just cruise speed.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Crossing Time</h4>
+            <p>
+              <strong>t_cross</strong> = 2R / v_wave<br>
+              Worst-case time for the wave to cross the galactic disk — launch near the center, reach the far edge.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Replication Growth</h4>
+            <p>
+              <strong>N(t)</strong> = N&#8320; &middot; (k&middot;s)^(t/&tau;)<br>
+              k = children per probe, s = survival per hop, &tau; = hop-cycle time. Occupied systems grow geometrically each generation.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Stall Condition</h4>
+            <p>
+              Expansion halts when <strong>k&middot;s &le; 1</strong><br>
+              Each generation produces, on average, one or fewer surviving daughters — the front dies before reaching galactic scale.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Drake-form Count</h4>
+            <p>
+              <strong>N</strong> = R&#8902;&middot;f_p&middot;n_e&middot;f_l&middot;f_i&middot;f_c&middot;L<br>
+              Collapsed here to a fixed habitable-planet budget (R&#8902;&middot;f_p&middot;n_e) times the three rarity sliders, convolved over time instead of using a single L.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Metallicity Gate</h4>
+            <p>
+              Civilizations only emerge from planets formed after <strong>t_metal</strong><br>
+              Star formation before this line still happens, but doesn't leave enough heavy elements for rocky worlds.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Emergence Convolution</h4>
+            <p>
+              <strong>E(t)</strong> = SFR(t &minus; t_bio) &circledast; N(t_bio, &sigma;)<br>
+              Emergence density is the metallicity-gated planet formation rate convolved with the biological-clock distribution.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Implied Filter Strength</h4>
+            <p>
+              <strong>filter</strong> = max(1, N_arrived &middot; P_detect)<br>
+              Factor by which the naive expected/detectable count must be suppressed to explain zero observations. Reads ~1.0&times; when no extra filter is needed.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Special Relativity</h4>
+            <p>
+              <strong>&gamma;</strong> = 1 / &radic;(1 &minus; v&sup2;/c&sup2;)<br>
+              Applied to per-probe proper time when v &gt; 0.1c. Because 1 ly/yr = c exactly, all distance/velocity/time terms above stay unit-consistent with no conversion factor.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <footer class="site-footer">
+        <span class="bm-badge">Beach Monkey AI</span>
+      </footer>
+    </main>
+
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .catch(err => console.warn('SW registration failed:', err));
+    });
+  }
+</script>
 
 </body>
 </html>

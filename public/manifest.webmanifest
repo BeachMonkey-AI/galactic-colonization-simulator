@@ -1,12 +1,12 @@
 {
-  "name": "App Name",
-  "short_name": "App",
-  "description": "One-line pitch.",
+  "name": "Galactic Colonization Simulator",
+  "short_name": "Galactic Sim",
+  "description": "Model von Neumann probe expansion across the galaxy and the Fermi paradox timing argument.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
-  "background_color": "#0d0d0f",
-  "theme_color": "#0d0d0f",
+  "background_color": "#05080f",
+  "theme_color": "#05080f",
   "orientation": "any",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

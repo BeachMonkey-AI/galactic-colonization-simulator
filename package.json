@@ -1,7 +1,7 @@
 {
-  "name": "app-template",
+  "name": "galactic-colonization-simulator",
   "version": "1.0.0",
-  "description": "Template for Bob's apps. Copy, never link.",
+  "description": "Model von Neumann probe expansion across the galaxy and the Fermi paradox timing argument.",
   "private": true,
   "type": "module",
   "scripts": {
