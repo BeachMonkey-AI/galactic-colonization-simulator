@@ -647,6 +647,21 @@ function activateTab(which) {
   $('chart-emergence').hidden = which !== 'emergence';
   $('chart-montecarlo').hidden = which !== 'montecarlo';
   $('mc-summary').hidden = which !== 'montecarlo' || !el.stoch.checked;
+  // Charts for inactive tabs get created/updated while their container is
+  // display:none (a preset click or Run redraws all three regardless of which
+  // tab is showing). Chart.js can't measure a hidden canvas — its <canvas>
+  // stays permanently sized at 0x0 — so the chart that was off-screen at
+  // creation time looks frozen/blank until forced to re-measure now that its
+  // container is actually visible. Confirmed: chart.resize() fixes it
+  // instantly once called. Call it both immediately (the `hidden` attribute
+  // change above is already applied synchronously) and once more on the next
+  // frame as a fallback in case layout hadn't fully settled yet — cheap and
+  // makes this independent of exactly when the browser gets around to it.
+  const chart = { front: chartFront, emergence: chartEmergence, montecarlo: chartMc }[which];
+  if (chart) {
+    chart.resize();
+    requestAnimationFrame(() => chart.resize());
+  }
 }
 
 function initTabs() {
@@ -726,7 +741,12 @@ function runSimulation() {
   p.presetLabel = activePresetId ? PRESETS[activePresetId].label : 'Custom scenario';
   p.blurb = activePresetId ? PRESETS[activePresetId].blurb : null;
   el.runBtn.disabled = true;
-  activateTab('front');
+  // Stay on whichever tab the user was already looking at, so a slider tweak
+  // + Run visibly updates the chart in place instead of silently jumping back
+  // to "Colonization Front" — except the Monte Carlo tab, which has to fall
+  // back since this run may not have produced any Monte Carlo data at all.
+  const wasTab = document.querySelector('.tab.active')?.dataset.tab || 'front';
+  activateTab(wasTab === 'montecarlo' && !p.stoch ? 'front' : wasTab);
 
   const scn = evaluateScenario(p);
   renderResults(scn, p);
