@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Galactic Colonization Simulator</title>
+<meta name="description" content="Model von Neumann probe expansion across the galaxy and the Fermi paradox timing argument — tune the physics, watch the verdict flip." />
+<meta name="theme-color" content="#050810" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icons/icon-192.png" type="image/png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="stylesheet" href="styles/tokens.css" />
+<link rel="stylesheet" href="src/app.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>&#127756; Galactic Colonization Simulator</h1>
+    <p>Von Neumann probes, the Fermi paradox, and how fast silence should become a paradox</p>
+  </header>
+
+  <!-- INTRO -->
+  <div class="intro">
+    <p>
+      One answer to "why haven't we found aliens?": build a robot that can fly to another star,
+      mine raw material, build copies of itself, and send them onward. The population explodes
+      fast enough that a single civilization could fill the galaxy in a few million years &mdash;
+      a blink of an eye against its 13.6-billion-year history. This tool lets you test that
+      argument yourself: tune how good the probes are and how rare civilizations are, and see
+      whether the galaxy should already be crawling with them.
+      <button type="button" id="eli5-btn" class="info-btn" aria-haspopup="dialog" aria-controls="eli5-modal">
+        <span aria-hidden="true">&#9432;</span> What is this?
+      </button>
+    </p>
+  </div>
+
+  <dialog id="eli5-modal">
+    <div class="modal-card">
+      <button type="button" id="eli5-close" class="modal-close" aria-label="Close">&times;</button>
+      <h2>What is this, actually?</h2>
+
+      <h3>The Fermi Paradox, in one line</h3>
+      <p>
+        The universe is unbelievably old and unbelievably big, yet as far as we can tell we've
+        never detected a single trace of anyone else in it. That mismatch &mdash; a galaxy that
+        should be able to fill up with life, and a sky that looks completely empty &mdash; is the
+        Fermi Paradox.
+      </p>
+
+      <h3>Von Neumann probes</h3>
+      <p>
+        The sharpest version of the argument uses a hypothetical machine called a von Neumann
+        probe: a spacecraft that, on arriving at a new star system, mines raw material, builds
+        copies of itself, and sends those copies onward. Start with one probe and the numbers
+        explode &mdash; 2 becomes 4, 4 becomes 8 &mdash; so even a slow, unambitious probe fleet
+        can, in principle, spread across an entire galaxy in a few million years. That's a
+        geological eyeblink next to how long the galaxy has existed (13.6 billion years). So if
+        that's even roughly right, the galaxy should already be full of them. It isn't, as far as
+        we can tell. Why?
+      </p>
+
+      <h3>What this tool actually does</h3>
+      <p>
+        Two things decide the answer: how good the probes are at spreading (speed, how long they
+        linger before launching children, how many children, how often they fail), and how long
+        it takes &mdash; and how likely it is &mdash; for a planet to ever produce a civilization
+        capable of building probes in the first place. This dashboard lets you dial in both halves
+        and see what falls out: has anyone had time to reach us yet? If so, should we be able to
+        detect them?
+      </p>
+
+      <h3>Reading the verdict</h3>
+      <p>
+        <strong>SATURATED</strong> &mdash; the numbers say probes should already be here and
+        visible. That's a real paradox; something must be stopping this from happening.<br>
+        <strong>MARGINAL</strong> &mdash; right on the edge; genuinely unclear either way.<br>
+        <strong>QUIET</strong> &mdash; nobody's plausibly had time yet. No paradox, no mystery
+        &mdash; silence is exactly what you'd expect.<br>
+        <strong>DORMANT</strong> &mdash; probes should physically be here, but we might just not
+        be able to detect them (stealthy, dormant, or we haven't looked hard enough).<br>
+        <strong>STALLED</strong> &mdash; the probes' own math means they die out before ever
+        reaching galactic scale, regardless of how much time has passed.
+      </p>
+
+      <h3>Where to start</h3>
+      <p>
+        Click any of the seven presets above &mdash; each tells a complete, self-consistent
+        version of the argument. Or drag any slider yourself; the tool recomputes live, and every
+        configuration you land on is a shareable link.
+      </p>
+    </div>
+  </dialog>
+
+  <!-- PRESETS -->
+  <div class="presets" id="presets">
+    <button class="preset-btn classic" data-preset="classic-hart-tipler">
+      <span class="tag">CLASSIC</span>Classic Hart&ndash;Tipler
+    </button>
+    <button class="preset-btn classic" data-preset="slow-crawl">
+      <span class="tag">CLASSIC</span>Slow Crawl
+    </button>
+    <button class="preset-btn timing" data-preset="late-metallicity">
+      <span class="tag">TIMING</span>Late Metallicity
+    </button>
+    <button class="preset-btn rarity" data-preset="rare-intelligence">
+      <span class="tag">RARITY</span>Rare Intelligence
+    </button>
+    <button class="preset-btn structure" data-preset="percolation-stall">
+      <span class="tag">STRUCTURE</span>Percolation Stall
+    </button>
+    <button class="preset-btn timing" data-preset="we-are-first">
+      <span class="tag">TIMING</span>We Are First
+    </button>
+    <button class="preset-btn threat" data-preset="berserker">
+      <span class="tag">THREAT</span>Berserker
+    </button>
+  </div>
+
+  <div class="main">
+
+    <!-- CONTROLS -->
+    <aside class="controls">
+      <div class="controls-title">Probe &amp; Expansion Parameters</div>
+
+      <div class="field-group">
+        <label>Cruise Velocity
+          <span class="help-tip" data-tip="How fast a probe flies between stars, as a fraction of light speed (c = the speed light travels, the fastest anything can go). 0.1 means 10% of light speed — mind-bendingly fast by any human standard, and still a multi-decade trip between stars.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="v-cruise" value="0.01" step="any" min="0.0001" max="0.5">
+          <span class="unit">c</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Hop Distance
+          <span class="help-tip" data-tip="How far a probe travels to reach the next star it will take over. Shorter hops mean more frequent stops along the way, like refueling more often on a road trip — but it also means probes don't have to skip over as much empty space.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="hop-val" value="5" step="any" min="1" max="50">
+          <select id="hop-unit">
+            <option value="ly" selected>ly</option>
+            <option value="pc">pc</option>
+            <option value="kly">kly</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Dwell Time
+          <span class="help-tip" data-tip="How long a probe sits at a new star before it finishes building copies of itself and sends them onward — mining raw material, manufacturing, all of it. A probe can be blazing fast in space and still make the whole wave crawl if it's slow at this part.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="dwell" value="500" step="any" min="0" max="100000">
+          <span class="unit">yr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Replication Factor (k)
+          <span class="help-tip" data-tip="How many new probes each one builds before it's done. More children means the wave spreads faster and covers more ground — like a chain letter, but with spaceships. If probes fail often enough to cancel out how many children they make (see Failure Rate below), the whole chain can fizzle out instead of growing.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="k-repl" value="2" step="1" min="1" max="10">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Failure Rate per Hop
+          <span class="help-tip" data-tip="The chance a probe is lost before it can build its copies — bad luck, a crash, a broken part, whatever. If enough probes fail, the whole expansion can grind to a halt even if each surviving probe tries to build several children (see the Percolation Stall preset).">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="fail-rate" value="5" step="any" min="0" max="99">
+          <span class="unit">%</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <details class="advanced-group">
+        <summary>Galaxy Structure <span class="help-tip" data-tip="Background facts about the galaxy itself — how big it is, how much of it is actually usable. You probably don't need to touch these, but they're here if you want to imagine a bigger, smaller, denser, or sparser galaxy.">?</span></summary>
+
+        <div class="field-group">
+          <label>Target Density
+            <span class="help-tip" data-tip="How many star systems, per cubic light-year, are actually worth a probe stopping at — good for mining raw material or building more probes. This is a different (and much more generous) number than 'places life could exist' below, since a probe just needs rocks and metal, not oxygen and water.">?</span>
+          </label>
+          <div class="field-row">
+            <input type="number" id="target-density" value="0.004" step="any" min="0.0001">
+            <span class="unit">/ly&sup3;</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Galaxy Radius
+            <span class="help-tip" data-tip="How wide the galaxy's disk is, measured from the center out to the edge. This sets the worst-case trip length for a colonization wave: starting near the middle and spreading all the way out to the far rim. The Milky Way is roughly 50,000 light-years across this way.">?</span>
+          </label>
+          <div class="field-row">
+            <input type="number" id="galaxy-radius" value="50000" step="any" min="1000">
+            <span class="unit">ly</span>
+          </div>
+        </div>
+
+        <div class="field-group toggle-group">
+          <label class="toggle-label">
+            <input type="checkbox" id="use-ghz" checked> Galactic Habitable Zone constraint
+            <span class="help-tip" data-tip="Real galaxies aren't equally friendly to life everywhere. Too close to the center, radiation and exploding stars make things too dangerous; too far out, there hasn't been enough time to build up the raw materials for rocky planets. This limits 'planets where life could start' to the ring in between, instead of assuming the whole galaxy counts equally.">?</span>
+          </label>
+        </div>
+
+        <div id="ghz-fields">
+          <div class="field-group">
+            <label>GHZ Inner Radius
+              <span class="help-tip" data-tip="How close to the galaxy's crowded center you can get before radiation and exploding stars make life too unlikely to survive there.">?</span>
+            </label>
+            <div class="field-row">
+              <input type="number" id="ghz-inner" value="13000" step="any" min="0">
+              <span class="unit">ly</span>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>GHZ Outer Radius
+              <span class="help-tip" data-tip="How far out from the center you can go before there just hasn't been enough time to build up the heavy elements rocky planets are made of. Earth sits comfortably inside this ring, about 27,000 light-years out.">?</span>
+            </label>
+            <div class="field-row">
+              <input type="number" id="ghz-outer" value="32600" step="any" min="0">
+              <span class="unit">ly</span>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Disk Thickness
+              <span class="help-tip" data-tip="How 'tall' the galaxy's disk is, top to bottom, like a flattened dinner plate. Used to turn the flat ring/circle shapes above into an actual solid volume of space.">?</span>
+            </label>
+            <div class="field-row">
+              <input type="number" id="disk-thickness" value="1000" step="any" min="1">
+              <span class="unit">ly</span>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <hr class="divider">
+
+      <div class="controls-title">Emergence Timing</div>
+
+      <div class="field-group">
+        <label>Galaxy Age
+          <span class="help-tip" data-tip="How much time has passed since the Big Bang — in other words, 'right now,' for this simulation. Anything the charts show happening after this point on the timeline hasn't actually happened yet.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="galaxy-age" value="13.6" step="any" min="8" max="14">
+          <span class="unit">Gyr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Metallicity Threshold
+          <span class="help-tip" data-tip="Rocky planets are built from heavy elements ('metals' to astronomers — basically anything heavier than hydrogen and helium) that only exist because earlier generations of stars lived, died, and scattered them into space. Before this point in the galaxy's history, there simply wasn't enough of that stuff around yet to build a planet like Earth.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="t-metal" value="5.0" step="any" min="0" max="13">
+          <span class="unit">Gyr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Mean Bio Clock
+          <span class="help-tip" data-tip="On average, how long it takes a freshly-formed rocky planet to go all the way to 'civilization that can build spaceships' — through the origin of life, evolution, intelligence, and technology. Earth took about 4.5 billion years to make that whole journey.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="bio-mean" value="4.5" step="any" min="0.5" max="13">
+          <span class="unit">Gyr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Bio Clock Std. Dev.
+          <span class="help-tip" data-tip="How much that timeline above varies from planet to planet. A bigger number means some civilizations could plausibly show up dramatically earlier or later than the average — the timing argument gets fuzzier the higher you push this.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="number" id="bio-sigma" value="1.0" step="any" min="0.1" max="5">
+          <span class="unit">Gyr</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Star Formation Curve
+          <span class="help-tip" data-tip="When, over the galaxy's whole history, most stars (and their planets) actually formed. 'Observed' matches our best real-world guess — a lot of star formation happened fairly early on, then it slowed down. 'Flat' spreads star formation out evenly across all of history. 'Early-peak' assumes almost everything formed very early, in just the first couple billion years.">?</span>
+        </label>
+        <div class="field-row">
+          <select id="sfr-curve">
+            <option value="observed" selected>Observed</option>
+            <option value="flat">Flat</option>
+            <option value="early-peak">Early-peak</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="controls-title">Rarity Terms</div>
+
+      <div class="field-group">
+        <label>P(abiogenesis | habitable)
+          <span class="help-tip" data-tip="Given a planet where life COULD exist, what's the chance life actually gets started there at all? Nobody actually knows this number — serious estimates range from 'basically guaranteed' to 'staggeringly rare,' which is why this slider covers such a huge range. Dragging it way down is the classic 'life itself is rare' argument.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="range" id="p-abio" min="-9" max="0" step="0.01" value="-2">
+          <span class="log-readout" id="p-abio-readout">1.0&times;10&#8315;&sup2;</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>P(intelligence | life)
+          <span class="help-tip" data-tip="Given that life exists on a planet, what's the chance it ever evolves into something smart enough to build technology? Life has existed on Earth for about 3.8 billion years and produced exactly one species that builds spaceships — us. This is the classic 'intelligence is rare' lever.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="range" id="p-intel" min="-9" max="0" step="0.01" value="-3">
+          <span class="log-readout" id="p-intel-readout">1.0&times;10&#8315;&sup3;</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>P(launches probes | intelligence)
+          <span class="help-tip" data-tip="Given a civilization smart enough to do it, what's the chance they actually build self-replicating probes and send them out — instead of staying home, wiping themselves out first, or just deciding not to bother? This isn't about biology; it's about choices a civilization might or might not make.">?</span>
+        </label>
+        <div class="field-row">
+          <input type="range" id="p-launch" min="0" max="1" step="0.01" value="0.5">
+          <span class="log-readout" id="p-launch-readout">0.50</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="controls-title">Detectability</div>
+
+      <div class="field-group">
+        <label>P(detect | present)
+          <span class="help-tip" data-tip="If a colonization wave already reached our solar system, what's the chance we'd have actually noticed by now? Probes could be dormant, tiny, silent, or just really good at hiding — and we might not have looked everywhere yet either. 'Nobody's found one' isn't the same thing as 'none exist.'">?</span>
+        </label>
+        <div class="field-row">
+          <input type="range" id="p-detect" min="0" max="1" step="0.001" value="0.5">
+          <span class="log-readout" id="p-detect-readout">0.50</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="controls-title">Stochastic Mode</div>
+
+      <div class="field-group toggle-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="use-stochastic"> Monte Carlo mode
+          <span class="help-tip" data-tip="Instead of trusting one guess for each rarity slider above, this runs the whole simulation thousands of times with a different random guess each time, to show the full range of plausible answers rather than a single number. Everything else (probe speed, timing, etc.) stays fixed.">?</span>
+        </label>
+      </div>
+
+      <div id="stochastic-fields" hidden>
+        <div class="field-group">
+          <label>Run Count</label>
+          <div class="field-row">
+            <select id="run-count">
+              <option value="100">100</option>
+              <option value="1000" selected>1,000</option>
+              <option value="10000">10,000</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Seed
+            <span class="help-tip" data-tip="A starting number for the random guesses used in Monte Carlo mode. Using the same seed always produces the exact same random results, so a link you share shows the other person exactly what you saw.">?</span>
+          </label>
+          <div class="field-row">
+            <input type="number" id="seed" value="42" step="1" min="0">
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <button class="sim-btn" id="run-btn">&#9654; Run Simulation</button>
+      <div class="progress-wrap" id="progress-wrap" hidden>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-label" id="progress-label">Running Monte Carlo&hellip;</div>
+      </div>
+
+      <div id="preview-box" class="rocket-box">
+        <div class="rocket-box-title">Colonization Preview</div>
+        <div id="colonization-preview">&mdash;</div>
+      </div>
+    </aside>
+
+    <!-- RESULTS -->
+    <main class="results">
+      <div id="no-results" class="placeholder">
+        <span>&#128752;</span>
+        Select a preset or enter parameters and click "Run Simulation"
+      </div>
+
+      <div id="results-content" hidden>
+
+        <div class="verdict-card" id="verdict-card">
+          <div class="verdict-head">
+            <span class="verdict-badge" id="verdict-badge">&mdash;</span>
+            <span class="scenario-name" id="scenario-name"></span>
+          </div>
+          <div class="verdict-body" id="verdict-body"></div>
+        </div>
+
+        <div class="metrics-grid" id="metrics-grid"></div>
+
+        <div class="chart-tabs">
+          <button class="tab active" data-tab="front">Colonization Front
+            <span class="help-tip" data-tip="How many star systems the probe wave has taken over, as time passes since launch. It climbs explosively at first (like a chain letter), then levels off once it either runs out of nearby stars to hop to or fills the whole galaxy. The dashed line marks when the wave would reach Earth.">?</span>
+          </button>
+          <button class="tab" data-tab="emergence">Emergence Distribution
+            <span class="help-tip" data-tip="When, across the galaxy's entire history, new spacefaring civilizations show up. The green shaded part is civilizations old enough that — if they built probes — those probes should already have reached us by now. This chart is basically the whole timing argument drawn as a picture.">?</span>
+          </button>
+          <button class="tab" data-tab="montecarlo" id="tab-montecarlo" hidden>Monte Carlo
+            <span class="help-tip" data-tip="Out of every random guess Monte Carlo mode tried, how many civilizations came out 'ready in time' to reach us. When a huge pile of results land on 0 or 1, that's not a fluke or a coding error — it's what naturally falls out when you take the uncertainty seriously.">?</span>
+          </button>
+        </div>
+
+        <div class="chart-wrap" id="chart-front"><canvas id="cv-front"></canvas></div>
+        <div class="chart-wrap" id="chart-emergence" hidden><canvas id="cv-emergence"></canvas></div>
+        <div class="chart-wrap" id="chart-montecarlo" hidden><canvas id="cv-montecarlo"></canvas></div>
+
+        <div class="mc-summary" id="mc-summary" hidden></div>
+      </div>
+
+      <!-- Physics Reference -->
+      <details class="physics-ref">
+        <summary>Physics &amp; Math Reference</summary>
+        <div class="ref-body">
+          <div class="ref-section">
+            <h4>Wave Front Velocity</h4>
+            <p>
+              <strong>v_wave</strong> = d_hop / (d_hop/v + t_dwell)<br>
+              Speed the colonization frontier actually advances, accounting for time spent dwelling and replicating at each stop, not just cruise speed.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Crossing Time</h4>
+            <p>
+              <strong>t_cross</strong> = 2R / v_wave<br>
+              Worst-case time for the wave to cross the galactic disk — launch near the center, reach the far edge.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Replication Growth</h4>
+            <p>
+              <strong>N(t)</strong> = N&#8320; &middot; (k&middot;s)^(t/&tau;)<br>
+              k = children per probe, s = survival per hop, &tau; = hop-cycle time. Occupied systems grow geometrically each generation.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Stall Condition</h4>
+            <p>
+              Expansion halts when <strong>k&middot;s &le; 1</strong><br>
+              Each generation produces, on average, one or fewer surviving daughters — the front dies before reaching galactic scale.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Drake-form Count</h4>
+            <p>
+              <strong>N</strong> = R&#8902;&middot;f_p&middot;n_e&middot;f_l&middot;f_i&middot;f_c&middot;L<br>
+              Collapsed here to a fixed habitable-planet budget (R&#8902;&middot;f_p&middot;n_e) times the three rarity sliders, convolved over time instead of using a single L.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Metallicity Gate</h4>
+            <p>
+              Civilizations only emerge from planets formed after <strong>t_metal</strong><br>
+              Star formation before this line still happens, but doesn't leave enough heavy elements for rocky worlds.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Emergence Convolution</h4>
+            <p>
+              <strong>E(t)</strong> = SFR(t &minus; t_bio) &circledast; N(t_bio, &sigma;)<br>
+              Emergence density is the metallicity-gated planet formation rate convolved with the biological-clock distribution.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Implied Filter Strength</h4>
+            <p>
+              <strong>filter</strong> = max(1, N_arrived &middot; P_detect)<br>
+              Factor by which the naive expected/detectable count must be suppressed to explain zero observations. Reads ~1.0&times; when no extra filter is needed.
+            </p>
+          </div>
+          <div class="ref-section">
+            <h4>Special Relativity</h4>
+            <p>
+              <strong>&gamma;</strong> = 1 / &radic;(1 &minus; v&sup2;/c&sup2;)<br>
+              Applied to per-probe proper time when v &gt; 0.1c. Because 1 ly/yr = c exactly, all distance/velocity/time terms above stay unit-consistent with no conversion factor.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <footer class="site-footer">
+        <span class="bm-badge">Beach Monkey AI</span>
+      </footer>
+    </main>
+
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .catch(err => console.warn('SW registration failed:', err));
+    });
+  }
+</script>
+
+</body>
+</html>
